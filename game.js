@@ -1,82 +1,113 @@
-let groguImg;
-let snowflakes = [];
+import Player from "./player.js";
+import Platform from "./platform.js";
 
+let player;
+let groguImg;
+let platforms = [];
+let snowflakes = [];
+let gameStarted = false;
+
+// preload assets
 function preload() {
-  // Load Grogu image
-  groguImg = loadImage("assets/start-screen-grogu.png");
+  // load Grogu image
+  groguImg = loadImage("assets/grogu.png");
 }
 
+// setup canvas and initial game objects
 function setup() {
   createCanvas(600, 800);
-  imageMode(CENTER); // Draw images from the center
-  textAlign(CENTER, CENTER); // Center text horizontally and vertically
+  imageMode(CENTER);
+  textAlign(CENTER, CENTER);
+
+  // initialize player at the top of the ground
+  player = new Player(width / 2 - 25, height - 140);
+
+  // create platforms
+  platforms = [];
+  for (let i = 0; i < 10; i++) {
+    let x = random(width - 100);
+    let y = height - 180 - i * 80; // platforms spaced upward
+    platforms.push(new Platform(x, y));
+  }
 }
 
+// main draw loop
 function draw() {
-  // Draw background first
-  drawBackground();
-
-  // Draw snowy ground
-  fill(255);
-  noStroke();
-  let groundHeight = 100;
-  rect(0, height - groundHeight, width, groundHeight);
-
-  // Add small snow mounds
-  for (let i = 0; i < width; i += 50) {
-    ellipse(i + 25, height - groundHeight + 10, 60, 20);
+  // draw gradient sky background
+  for (let y = 0; y < height; y++) {
+    let inter = map(y, 0, height, 0, 1);
+    let c = lerpColor(color(135, 206, 250), color(173, 216, 230), inter); // dark blue to light blue
+    stroke(c);
+    line(0, y, width, y);
   }
 
-  // Create new snowflake randomly
-  if (random(1) < 0.1) { // 10% chance per frame
-    snowflakes.push({x: random(width), y: 0, size: random(2, 6), speed: random(1, 3)});
+  // generate and draw falling snowflakes
+  if (random(1) < 0.1 && snowflakes.length < 200) {
+    snowflakes.push({ x: random(width), y: 0, size: random(2,6), speed: random(1,3) });
   }
-
-  // Draw and move snowflakes
   for (let flake of snowflakes) {
     fill(255);
     noStroke();
     ellipse(flake.x, flake.y, flake.size);
-    flake.y += flake.speed; // Fall down
+    flake.y += flake.speed;
 
-    // Reset if off screen
+    // reset snowflake if it falls below canvas
     if (flake.y > height) {
       flake.y = 0;
       flake.x = random(width);
     }
   }
 
-  // Draw Grogu
-  image(groguImg, width / 2, height - groundHeight - 40, 100, 100);
+  // start screen before the game begins
+  if (!gameStarted) {
+    fill(255);
+    noStroke();
+    rect(0, height - 100, width, 100); // draw ground
 
-  // Draw game title
-  textSize(50);
-  fill(0, 100, 0);
-  text("Grogu Jump", width / 2, 150);
+    image(groguImg, width / 2, height - 140, 100, 100); // draw Grogu on ground
 
-  // Draw game description
-  textSize(20);
-  fill(0, 100, 0);
-  text("Help little Grogu get back to his Home planet!", width / 2, 200);
+    fill(0, 100, 0);
+    textSize(50);
+    text("Grogu Jump", width / 2, 150); // game title
+    textSize(25);
+    text("Help little Grogu get back Home to his planet", width / 2, 220); // game description
+    text("Use LEFT / RIGHT arrows to move", width / 2, 350); // controls
 
-  // Draw start button text with pulse effect
-  let pulse = 1 + 0.05 * sin(frameCount * 0.1);
-  textSize(25);
-  fill(0, 100, 0);
-  push();
-  translate(width / 2, 400);
-  scale(pulse); 
-  text("Press Space to Start", 0, 0);
-  pop();
+    // pulsating start text
+    let pulse = 1 + 0.05 * sin(frameCount * 0.1);
+    push();
+    translate(width / 2, 400);
+    scale(pulse);
+    textSize(25);
+    text("Press SPACE to start", 0, 0);
+    pop();
+
+    return; // skip the game loop
+  }
+
+  // draw ground
+  fill(255);
+  noStroke();
+  rect(0, height - 100, width, 100);
+
+  // draw platforms
+  for (let plat of platforms) plat.draw();
+
+  // update and draw player
+  player.update(platforms);
+  player.draw(groguImg);
 }
 
-function drawBackground() {
-  // Vertical gradient background
-  noStroke(); // Important to prevent stroke affecting other shapes
-  for (let y = 0; y < height; y++) {
-    let inter = map(y, 0, height, 0, 1);
-    let c = lerpColor(color(135, 206, 250), color(255, 255, 255), inter);
-    stroke(c);
-    line(0, y, width, y);
+// handle key input
+function keyPressed() {
+  if (key === " " && !gameStarted) {
+    gameStarted = true;
+    player.vy = -12; // first jump
   }
 }
+
+// bind p5 callbacks
+window.preload = preload;
+window.setup = setup;
+window.draw = draw;
+window.keyPressed = keyPressed;
