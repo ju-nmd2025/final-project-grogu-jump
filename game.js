@@ -1,3 +1,6 @@
+/* Parts of this game were developed with guidance from ChatGPT, used as a learning and support tool.
+https://chatgpt.com/share/69432188-1bf4-8001-b18d-d86f43c11c75 */
+
 import Player from "./player.js";
 import Platform from "./platform.js";
 
@@ -6,6 +9,8 @@ let groundY;
 let groguImg;
 let planetImg;
 let successImg;
+let sadGroguImg;
+let failBackgroundImg;
 let platforms = [];
 let snowflakes = [];
 let score = 50;
@@ -17,6 +22,8 @@ function preload() {
   groguImg = loadImage("assets/grogu.png");
   planetImg = loadImage("assets/planet.png");
   successImg = loadImage("assets/success-grogu.png");
+  failBackgroundImg = loadImage("assets/fail-bg.png")
+  sadGroguImg = loadImage("assets/sad-grogu.png");
 }
 
 // setup canvas and initial game objects
@@ -97,26 +104,30 @@ function drawStartScreen() {
   drawVerticalGradient(color(180, 220, 255), color(120, 200, 255));
   drawSnow();
   
+  // ground
   fill(255);
   noStroke();
   rect(0, height - 100, width, 100);
 
+  // grogu image
   image(groguImg, width / 2, height - 140, 100, 100);
 
+  // start screen text
+  stroke(10);
   fill(0, 100, 0);
-  textSize(50);
+  textSize(100);
   text("Grogu Jump", width / 2, 150); // game title
   textSize(25);
-  text("Help little Grogu get back Home to his planet", width / 2, 220); // game description
-  text("Use LEFT / RIGHT arrows to move", width / 2, 350); // controls
+  text("help little lost Grogu get back Home to his planet", width / 2, 250); // game description
+  text("use LEFT / RIGHT arrows to move", width / 2, 500); // controls
 
-   // pulsating start text
-  let pulse = 1 + 0.05 * sin(frameCount * 0.1);
+  // pulsating start text
+  let pulse = 1 + 0.05 * sin(frameCount * 0.05);
   push();
-  translate(width / 2, 400);
+  translate(width / 2, 600);
   scale(pulse);
-  textSize(25);
-  text("Press SPACE to start", 0, 0);
+  textSize(50);
+  text("press SPACE to start", 0, 0);
   pop();
 }
 
@@ -132,7 +143,6 @@ function drawGameScreen() {
   
   // --- draw ground ---
   fill(255);
-  noStroke();
   rect(0, groundY, width, 100);
 
   // --- draw platforms ---
@@ -147,10 +157,11 @@ function drawGameScreen() {
   player.draw(groguImg);
 
   // --- score ---
+  stroke(0);
   fill(0, 100, 0);
   textSize(30);
   textAlign(LEFT, TOP);
-  text("Miles Left: " + score, 20, 20);
+  text("Miles Left: " + score, 40, 40);
 
   // game over & success
   if (player.y > height) gameState = "gameover";
@@ -170,18 +181,26 @@ function drawGameScreen() {
 
 // ========== GAME OVER SCREEN ==========
 function drawGameOverScreen() {
-  drawVerticalGradient(color(220), color(120));
+  image(failBackgroundImg, width / 2, height / 2, width, height);
 
+  image(sadGroguImg, width / 2, height - 50, 200, 200);
   // --- text ---
-  fill(0);
+  fill(255);
   textAlign(CENTER, TOP);
   textSize(80);
-  text("OH NO...", width/2, height/2 - 150);
+  text("OH NO...", width / 2, height / 2 - 300);
 
-  fill(0);
+  fill(255);
   textSize(30);
-  text("You failed to get little Grogu home! :(", width/2, height/2);
-  text("Press R to retry", width/2, height/2 + 60);
+  text("You failed to get little Grogu home! :(", width / 2, height / 2 - 180);
+  
+  let pulse = 1 + 0.05 * sin(frameCount * 0.05);
+  push();
+  translate(width / 2, 600);
+  scale(pulse);
+  textSize(50);
+  text("press R to retry", 0, 0);
+  pop();
 }
 
 // ========== GAME SUCCESS SCREEN ==========
