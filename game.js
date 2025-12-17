@@ -6,6 +6,7 @@ let groundY;
 let groguImg;
 let platforms = [];
 let snowflakes = [];
+let gameOver = false;
 let gameStarted = false;
 
 // preload assets
@@ -43,6 +44,29 @@ function setup() {
 
 // main draw loop
 function draw() {
+  if (gameOver) {
+    for (let y = 0; y < height; y++) {
+      let inter = map(y, 0, height, 0, 1);
+      let c = lerpColor(color(220), color(255), inter);
+      stroke(c);
+      line(0, y, width, y);
+    }
+
+    // game over + retry text
+    stroke(0);
+    strokeWeight(3);
+    fill(255, 0, 0);
+    textSize(100);
+    text("OH NO...", width / 2, height / 2 - 200);
+    textSize(30);
+    text("you failed to get little Grogu home! :(", width / 2, height / 2 - 50);
+    textSize(30);
+    text("Press R to retry", width / 2, height / 2 + 100);
+
+    noLoop();
+    return;
+  }
+
   // draw gradient sky background
   for (let y = 0; y < height; y++) {
     let inter = map(y, 0, height, 0, 1);
@@ -110,6 +134,10 @@ function draw() {
   groundY = player.update(platforms, groundY);
   player.draw(groguImg);
 
+  if (player.y > height) {
+    gameOver = true;
+  }
+
   // reuse platforms when scrolling up
   for (let plat of platforms) {
     if (plat.y > height) {
@@ -130,6 +158,38 @@ function keyPressed() {
     gameStarted = true;
     player.vy = -12; // first jump
   }
+
+  if (gameOver && (key === "r" || key === "R")) {
+    resetGame();
+  }
+}
+
+function resetGame() {
+  gameOver = false;
+  gameStarted = true;
+  groundY = height - 100;
+
+  // draw player again and start jumping
+  player = new Player(width / 2 - 25, height - 140);
+  player.vy = -12;
+
+  // create new platforms
+  platforms = [];
+  for (let i = 0; i < 10; i++) {
+    let x = random(width - 100);
+    let y = height - 180 - i * 80;
+
+    let type;
+    let r = random(1);
+    if (r < 0.6) type = "static";
+    else if (r < 0.85) type = "moving";
+    else type = "breakable";
+
+    platforms.push(new Platform(x, y, type));
+  }
+
+  snowflakes = [];
+  loop();
 }
 
 // bind p5 callbacks
