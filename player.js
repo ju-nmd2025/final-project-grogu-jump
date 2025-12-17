@@ -8,12 +8,12 @@ export default class Player {
     this.height = 50;
   }
 
-  update(platforms) {
+  update(platforms, groundY) {
     this.vy += 0.4; // gravity
     this.y += this.vy;
 
     let landed = false;
-    let groundY = height - 140; // top of ground
+    // let groundY = height - 140; // top of ground
 
     // collision with plattforms
     for (let plat of platforms) {
@@ -47,10 +47,14 @@ export default class Player {
       for (let plat of platforms) {
         plat.y += diff;
       }
+      groundY += diff; // ground moves up with scroll
     }
     
     // horizontal movement
     this.move();
+
+    // return updated groundY
+    return groundY;
   }
 
   move() {

@@ -2,6 +2,7 @@ import Player from "./player.js";
 import Platform from "./platform.js";
 
 let player;
+let groundY;
 let groguImg;
 let platforms = [];
 let snowflakes = [];
@@ -18,6 +19,8 @@ function setup() {
   createCanvas(600, 800);
   imageMode(CENTER);
   textAlign(CENTER, CENTER);
+
+  groundY = height - 100;
 
   // initialize player at the top of the ground
   player = new Player(width / 2 - 25, height - 140);
@@ -85,17 +88,25 @@ function draw() {
     return; // skip the game loop
   }
 
-  // draw ground
+  // draw ground and platforms
   fill(255);
   noStroke();
-  rect(0, height - 100, width, 100);
+  rect(0, groundY, width, 100);
 
   // draw platforms
   for (let plat of platforms) plat.draw();
 
   // update and draw player
-  player.update(platforms);
+  groundY = player.update(platforms, groundY);
   player.draw(groguImg);
+
+  // reuse platforms when scrolling up
+  for (let plat of platforms) {
+    if (plat.y > height) {
+      plat.y = -plat.height; // move upwards above screen
+      plat.x = random(width - plat.width); // randomize x
+    }
+  }
 }
 
 // handle key input
