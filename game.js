@@ -4,14 +4,13 @@ import Platform from "./platform.js";
 let player;
 let groundY;
 let groguImg;
+let score = 0;
 let platforms = [];
 let snowflakes = [];
-let gameOver = false;
-let gameStarted = false;
+let gameState = "start";
 
 // preload assets
 function preload() {
-  // load Grogu image
   groguImg = loadImage("assets/grogu.png");
 }
 
@@ -20,13 +19,15 @@ function setup() {
   createCanvas(600, 800);
   imageMode(CENTER);
   textAlign(CENTER, CENTER);
+  textFont("Georgia");
 
   groundY = height - 100;
-
-  // initialize player at the top of the ground
   player = new Player(width / 2 - 25, height - 140);
 
-  // create platforms + array
+  initPlatforms();
+}
+
+function initPlatforms() {
   platforms = [];
   for (let i = 0; i < 10; i++) {
     let x = random(width - 100);
@@ -42,40 +43,17 @@ function setup() {
   }
 }
 
-// main draw loop
-function draw() {
-  if (gameOver) {
-    for (let y = 0; y < height; y++) {
-      let inter = map(y, 0, height, 0, 1);
-      let c = lerpColor(color(220), color(255), inter);
-      stroke(c);
-      line(0, y, width, y);
-    }
-
-    // game over + retry text
-    stroke(0);
-    strokeWeight(3);
-    fill(255, 0, 0);
-    textSize(100);
-    text("OH NO...", width / 2, height / 2 - 200);
-    textSize(30);
-    text("you failed to get little Grogu home! :(", width / 2, height / 2 - 50);
-    textSize(30);
-    text("Press R to retry", width / 2, height / 2 + 100);
-
-    noLoop();
-    return;
-  }
-
-  // draw gradient sky background
+// --- gradient function ---
+function drawVerticalGradient(topColor, bottomColor) {
   for (let y = 0; y < height; y++) {
     let inter = map(y, 0, height, 0, 1);
-    let c = lerpColor(color(135, 206, 250), color(173, 216, 230), inter); // dark blue to light blue
+    let c = lerpColor(topColor, bottomColor, inter);
     stroke(c);
     line(0, y, width, y);
   }
+}
 
-  // generate and draw falling snowflakes
+function drawSnow() {
   if (random(1) < 0.1 && snowflakes.length < 200) {
     snowflakes.push({ x: random(width), y: 0, size: random(2,6), speed: random(1,3) });
   }
@@ -84,112 +62,169 @@ function draw() {
     noStroke();
     ellipse(flake.x, flake.y, flake.size);
     flake.y += flake.speed;
-
-    // reset snowflake if it falls below canvas
+    
     if (flake.y > height) {
       flake.y = 0;
       flake.x = random(width);
     }
   }
+}
 
-  // start screen before the game begins
-  if (!gameStarted) {
-    fill(255);
-    noStroke();
-    rect(0, height - 100, width, 100); // draw ground
+function draw() {
+  switch(gameState) {
+    case "start":
+      drawStartScreen();
+      break;
+    case "play":
+      drawGameScreen();
+      break;
+    case "gameover":
+      drawGameOverScreen();
+      break;
+    case "success":
+      drawGameSuccessScreen();
+      break;
+  }
+}
 
-    image(groguImg, width / 2, height - 140, 100, 100); // draw Grogu on ground
+// ========== START SCREEN ==========
+function drawStartScreen() {
+  drawVerticalGradient(color(180, 220, 255), color(120, 200, 255));
+  drawSnow();
+  
+  fill(255);
+  noStroke();
+  rect(0, height - 100, width, 100);
 
-    fill(0, 100, 0);
-    textSize(50);
-    text("Grogu Jump", width / 2, 150); // game title
-    textSize(25);
-    text("Help little Grogu get back Home to his planet", width / 2, 220); // game description
-    text("Use LEFT / RIGHT arrows to move", width / 2, 350); // controls
+  image(groguImg, width / 2, height - 140, 100, 100);
 
-    // pulsating start text
-    let pulse = 1 + 0.05 * sin(frameCount * 0.1);
-    push();
-    translate(width / 2, 400);
-    scale(pulse);
-    textSize(25);
-    text("Press SPACE to start", 0, 0);
-    pop();
+  fill(0, 100, 0);
+  textSize(50);
+  text("Grogu Jump", width / 2, 150); // game title
+  textSize(25);
+  text("Help little Grogu get back Home to his planet", width / 2, 220); // game description
+  text("Use LEFT / RIGHT arrows to move", width / 2, 350); // controls
 
-    return; // skip the game loop
+   // pulsating start text
+  let pulse = 1 + 0.05 * sin(frameCount * 0.1);
+  push();
+  translate(width / 2, 400);
+  scale(pulse);
+  textSize(25);
+  text("Press SPACE to start", 0, 0);
+  pop();
+}
+
+// ========== GAME SCREEN ==========
+function drawGameScreen() {
+  drawVerticalGradient(color(180, 220, 255), color(120, 200, 255));
+  drawSnow();
+
+  // --- update platforms ---
+ for (let plat of platforms) {
+    plat.update();
   }
 
-  // draw ground and platforms
+  // --- update & draw player ---
+  let result = player.update(platforms, groundY);
+  groundY = result.groundY;
+  if (result.scored) score++;
+
+  player.draw(groguImg);
+
+  // --- draw ground ---
   fill(255);
   noStroke();
   rect(0, groundY, width, 100);
 
-  // draw platforms
+  // --- draw platforms ---
   for (let plat of platforms) {
-    plat.update();
     plat.draw();
   }
 
-  // update and draw player
-  groundY = player.update(platforms, groundY);
-  player.draw(groguImg);
+  // game over & success
+  if (player.y > height) gameState = "gameover";
+  if (score >= 50) gameState = "success";
 
-  if (player.y > height) {
-    gameOver = true;
-  }
-
-  // reuse platforms when scrolling up
-  for (let plat of platforms) {
+  // recycle platforms
+ for (let plat of platforms) {
     if (plat.y > height) {
-      plat.y = -plat.height; // move upwards above screen
-      plat.x = random(width - plat.width); // randomize x
-
-      if (plat.type === "breakable") {
-        plat.height = 20;
-        plat.broken = false;
-      }
+      plat.y = -plat.height;
+      plat.x = random(width - plat.width);
+      plat.broken = false;
+      plat.scored = false;
     }
   }
+
+  // --- score ---
+  fill(0, 100, 0);
+  textSize(30);
+  textAlign(LEFT, TOP);
+  text("Score: " + score, 20, 20);
 }
 
-// handle key input
+// ========== GAME OVER SCREEN ==========
+function drawGameOverScreen() {
+  drawVerticalGradient(color(220), color(120));
+
+  // --- text ---
+  fill(0);
+  textAlign(CENTER, TOP);
+  textSize(80);
+  text("OH NO...", width/2, height/2 - 150);
+
+  fill(0);
+  textSize(30);
+  text("You failed to get little Grogu home! :(", width/2, height/2);
+  text("Press R to retry", width/2, height/2 + 60);
+
+  // --- score ---
+  fill(0, 100, 0);
+  textSize(30);
+  textAlign(LEFT, TOP);
+  text("Score: " + score, 20, 20);
+}
+
+// ========== GAME SUCCESS SCREEN ==========
+function drawGameSuccessScreen() {
+  drawVerticalGradient(color(180, 220, 255), color(120, 200, 255));
+
+  fill(0, 150, 0);
+  textSize(80);
+  textAlign(CENTER, TOP);
+  text("CONGRATS!", width / 2, height / 2 - 150);
+
+  fill(0);
+  textSize(30);
+  text("Little Grogu made it home!", width / 2, height / 2 - 40);
+  text("Press R to play again", width / 2, height / 2 + 20);
+
+  fill(0, 100, 0);
+  textSize(30);
+  textAlign(LEFT, TOP);
+  text("Score: " + score, 20, 20);
+}
+
+// ========== INPUT HANDLING ==========
 function keyPressed() {
-  if (key === " " && !gameStarted) {
-    gameStarted = true;
+  if (key === " " && gameState === "start") {
+    gameState = "play";
     player.vy = -12; // first jump
   }
 
-  if (gameOver && (key === "r" || key === "R")) {
+  if ((key === "r" || key === "R") && (gameState === "gameover" || gameState === "success")) {
     resetGame();
   }
 }
 
 function resetGame() {
-  gameOver = false;
-  gameStarted = true;
+  gameState = "play";
+  score = 0;
   groundY = height - 100;
-
-  // draw player again and start jumping
   player = new Player(width / 2 - 25, height - 140);
   player.vy = -12;
-
-  // create new platforms
-  platforms = [];
-  for (let i = 0; i < 10; i++) {
-    let x = random(width - 100);
-    let y = height - 180 - i * 80;
-
-    let type;
-    let r = random(1);
-    if (r < 0.6) type = "static";
-    else if (r < 0.85) type = "moving";
-    else type = "breakable";
-
-    platforms.push(new Platform(x, y, type));
-  }
-
   snowflakes = [];
-  loop();
+  initPlatforms();
 }
 
 // bind p5 callbacks

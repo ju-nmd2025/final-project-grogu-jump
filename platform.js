@@ -7,6 +7,7 @@ export default class Platform {
     this.type = type; // "static", "moving", "breakable"
     this.vx = type === "moving" ? random(1, 2) : 0; // speed for moving platforms
     this.broken = false;
+    this.scored = false;
   }
 
   update() {

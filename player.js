@@ -7,6 +7,7 @@ export default class Player {
     this.width = 50;
     this.height = 50;
     this.gravity = 0.4;
+    this.allowJump = false;
   }
 
   update(platforms, groundY) {
@@ -14,6 +15,7 @@ export default class Player {
     this.y += this.vy;
     
     let landed = false;
+    let scored = false;
 
     // collision with plattforms
     for (let plat of platforms) {
@@ -22,7 +24,12 @@ export default class Player {
         this.y = plat.y - this.height;
         this.vy = 0;
 
-        if (plat.type === "breakable" && !plat.broken) {
+       if (!plat.scored) {
+          scored = true;
+          plat.scored = true;
+       }
+
+       if (plat.type === "breakable" && !plat.broken) {
           plat.broken = true;
         }
         break;
@@ -55,7 +62,7 @@ export default class Player {
     this.move();
 
     // return updated groundY
-    return groundY;
+    return { groundY, scored };
 }
 
   move() {
