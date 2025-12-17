@@ -10,7 +10,7 @@ let platforms = [];
 let snowflakes = [];
 let score = 50;
 let gameState = "start";
-let maxHeightReached = 0;
+let hoverOffset = 0;
 
 // preload assets
 function preload() {
@@ -186,13 +186,22 @@ function drawGameOverScreen() {
 
 // ========== GAME SUCCESS SCREEN ==========
 function drawGameSuccessScreen() {
-  drawVerticalGradient(color(180, 220, 255), color(120, 200, 255));
 
   image(planetImg, width / 2, height / 2, width, height);
 
-  let groguWidth = 300;
-  let groguHeight = 300;
-  image(successImg, width / 2, height / 2, groguWidth, groguHeight);
+  hoverOffset += 0.025;
+
+  let hoverX = sin(hoverOffset) * 20;
+  let hoverY = sin(hoverOffset * 0.8) * 8;
+
+  image(
+    successImg,
+    width / 2 + hoverX,
+    height / 2 + hoverY,
+    250,
+    250
+  );
+
 
   fill(0, 150, 0);
   textSize(80);
