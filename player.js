@@ -39,6 +39,15 @@ export default class Player {
     if (landed && this.vy >= 0) {
       this.vy = -13;
     }
+
+    let scrollLimit = height / 2;
+    if (this.y < scrollLimit) {
+      let diff = scrollLimit - this.y;
+      this.y = scrollLimit;
+      for (let plat of platforms) {
+        plat.y += diff;
+      }
+    }
     
     // horizontal movement
     this.move();
