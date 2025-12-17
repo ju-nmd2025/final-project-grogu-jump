@@ -25,12 +25,19 @@ function setup() {
   // initialize player at the top of the ground
   player = new Player(width / 2 - 25, height - 140);
 
-  // create platforms
+  // create platforms + array
   platforms = [];
   for (let i = 0; i < 10; i++) {
     let x = random(width - 100);
     let y = height - 180 - i * 80; // platforms spaced upward
-    platforms.push(new Platform(x, y));
+
+    let type;
+    let r = random(1);
+    if (r < 0.6) type = "static"; // 60% static
+    else if (r < 0.85) type ="moving"; // 85% moveable
+    else type = "breakable"; // 15% breakable
+
+    platforms.push(new Platform(x, y, type));
   }
 }
 
@@ -94,7 +101,10 @@ function draw() {
   rect(0, groundY, width, 100);
 
   // draw platforms
-  for (let plat of platforms) plat.draw();
+  for (let plat of platforms) {
+    plat.update();
+    plat.draw();
+  }
 
   // update and draw player
   groundY = player.update(platforms, groundY);
@@ -105,6 +115,11 @@ function draw() {
     if (plat.y > height) {
       plat.y = -plat.height; // move upwards above screen
       plat.x = random(width - plat.width); // randomize x
+
+      if (plat.type === "breakable") {
+        plat.height = 20;
+        plat.broken = false;
+      }
     }
   }
 }

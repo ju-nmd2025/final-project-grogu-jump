@@ -6,40 +6,41 @@ export default class Player {
     this.speed = 5;
     this.width = 50;
     this.height = 50;
+    this.gravity = 0.4;
   }
 
   update(platforms, groundY) {
-    this.vy += 0.4; // gravity
+    this.vy += this.gravity;
     this.y += this.vy;
-
+    
     let landed = false;
-    // let groundY = height - 140; // top of ground
 
     // collision with plattforms
     for (let plat of platforms) {
-      if (
-        this.vy >= 0 &&
-        this.y + this.height >= plat.y &&
-        this.y + this.height <= plat.y + 5 &&
-        this.x + this.width > plat.x &&
-        this.x < plat.x + plat.width
-      ) {
+      if (this.vy >= 0 && plat.isPlayerOn(this.x, this.y, this.width, this.height)) {
         landed = true;
-        this.y = plat.y - this.height; // place player on platform
+        this.y = plat.y - this.height;
+        this.vy = 0;
+
+        if (plat.type === "breakable" && !plat.broken) {
+          plat.broken = true;
+        }
+        break;
       }
     }
 
-    // collision with ground
-    if (this.y >= groundY) {
-      landed = true;
-      this.y = groundY;
-    }
+   // collision with ground
+  if (!landed && this.y >= groundY) {
+    landed = true;
+    this.y = groundY;
+  }
 
-    // automatic jump when landed
-    if (landed && this.vy >= 0) {
-      this.vy = -13;
-    }
+  // automatic jump
+  if (landed) {
+    this.vy = -13;
+  }
 
+  // scrolling
     let scrollLimit = height / 2;
     if (this.y < scrollLimit) {
       let diff = scrollLimit - this.y;
@@ -55,7 +56,7 @@ export default class Player {
 
     // return updated groundY
     return groundY;
-  }
+}
 
   move() {
     if (keyIsDown(LEFT_ARROW)) {
