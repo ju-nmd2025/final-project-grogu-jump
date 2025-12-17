@@ -4,10 +4,11 @@ import Platform from "./platform.js";
 let player;
 let groundY;
 let groguImg;
-let score = 0;
 let platforms = [];
 let snowflakes = [];
+let score = 50;
 let gameState = "start";
+let maxHeightReached = 0;
 
 // preload assets
 function preload() {
@@ -22,7 +23,7 @@ function setup() {
   textFont("Georgia");
 
   groundY = height - 100;
-  player = new Player(width / 2 - 25, height - 140);
+  player = new Player(width / 2 - 25, groundY - 50);
 
   initPlatforms();
 }
@@ -121,17 +122,10 @@ function drawGameScreen() {
   drawSnow();
 
   // --- update platforms ---
- for (let plat of platforms) {
+  for (let plat of platforms) {
     plat.update();
   }
-
-  // --- update & draw player ---
-  let result = player.update(platforms, groundY);
-  groundY = result.groundY;
-  if (result.scored) score++;
-
-  player.draw(groguImg);
-
+  
   // --- draw ground ---
   fill(255);
   noStroke();
@@ -142,26 +136,33 @@ function drawGameScreen() {
     plat.draw();
   }
 
-  // game over & success
-  if (player.y > height) gameState = "gameover";
-  if (score >= 50) gameState = "success";
-
-  // recycle platforms
- for (let plat of platforms) {
-    if (plat.y > height) {
-      plat.y = -plat.height;
-      plat.x = random(width - plat.width);
-      plat.broken = false;
-      plat.scored = false;
-    }
-  }
+  // --- update & draw player ---
+  let result = player.update(platforms, groundY);
+  groundY = result.groundY;
+  if (result.scored) score = max(0, score - 1);
+  player.draw(groguImg);
 
   // --- score ---
   fill(0, 100, 0);
   textSize(30);
   textAlign(LEFT, TOP);
-  text("Score: " + score, 20, 20);
+  text("Miles Left: " + score, 20, 20);
+
+  // game over & success
+  if (player.y > height) gameState = "gameover";
+  if (score <= 0) gameState = "success";
+
+  // recycle platforms
+  for (let plat of platforms) {
+    if (plat.y > height) {
+      plat.y = -plat.height;
+      plat.x = random(width - plat.width);
+      plat.broken = false;
+      plat.scored = false; // återställ flagga för ny poäng
+    }
+  }
 }
+
 
 // ========== GAME OVER SCREEN ==========
 function drawGameOverScreen() {
@@ -177,12 +178,6 @@ function drawGameOverScreen() {
   textSize(30);
   text("You failed to get little Grogu home! :(", width/2, height/2);
   text("Press R to retry", width/2, height/2 + 60);
-
-  // --- score ---
-  fill(0, 100, 0);
-  textSize(30);
-  textAlign(LEFT, TOP);
-  text("Score: " + score, 20, 20);
 }
 
 // ========== GAME SUCCESS SCREEN ==========
@@ -219,12 +214,12 @@ function keyPressed() {
 
 function resetGame() {
   gameState = "play";
-  score = 0;
   groundY = height - 100;
-  player = new Player(width / 2 - 25, height - 140);
+  score = 50;
+  initPlatforms();
+  player = new Player(width / 2 - 25, height - 50);
   player.vy = -12;
   snowflakes = [];
-  initPlatforms();
 }
 
 // bind p5 callbacks

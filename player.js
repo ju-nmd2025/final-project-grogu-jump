@@ -3,10 +3,10 @@ export default class Player {
     this.x = x;
     this.y = y;
     this.vy = 0;
-    this.speed = 5;
+    this.speed = 8;
     this.width = 50;
     this.height = 50;
-    this.gravity = 0.4;
+    this.gravity = 0.6;
     this.allowJump = false;
   }
 
@@ -23,6 +23,7 @@ export default class Player {
         landed = true;
         this.y = plat.y - this.height;
         this.vy = 0;
+        this.onPlatform = true;
 
        if (!plat.scored) {
           scored = true;
@@ -37,14 +38,15 @@ export default class Player {
     }
 
    // collision with ground
-  if (!landed && this.y >= groundY) {
-    landed = true;
-    this.y = groundY;
-  }
+  if (!landed && this.y >= groundY - this.height) {
+        landed = true;
+        this.y = groundY - this.height;
+        this.vy = 0;
+    }
 
   // automatic jump
   if (landed) {
-    this.vy = -13;
+    this.vy = -16;
   }
 
   // scrolling
