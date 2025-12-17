@@ -6,7 +6,7 @@ export default class Player {
     this.speed = 8;
     this.width = 50;
     this.height = 50;
-    this.gravity = 0.6;
+    this.gravity = 0.4;
     this.allowJump = false;
   }
 

@@ -4,6 +4,8 @@ import Platform from "./platform.js";
 let player;
 let groundY;
 let groguImg;
+let planetImg;
+let successImg;
 let platforms = [];
 let snowflakes = [];
 let score = 50;
@@ -13,11 +15,13 @@ let maxHeightReached = 0;
 // preload assets
 function preload() {
   groguImg = loadImage("assets/grogu.png");
+  planetImg = loadImage("assets/planet.png");
+  successImg = loadImage("assets/success-grogu.png");
 }
 
 // setup canvas and initial game objects
 function setup() {
-  createCanvas(600, 800);
+  createCanvas(900, windowHeight);
   imageMode(CENTER);
   textAlign(CENTER, CENTER);
   textFont("Georgia");
@@ -184,20 +188,21 @@ function drawGameOverScreen() {
 function drawGameSuccessScreen() {
   drawVerticalGradient(color(180, 220, 255), color(120, 200, 255));
 
+  image(planetImg, width / 2, height / 2, width, height);
+
+  let groguWidth = 300;
+  let groguHeight = 300;
+  image(successImg, width / 2, height / 2, groguWidth, groguHeight);
+
   fill(0, 150, 0);
   textSize(80);
   textAlign(CENTER, TOP);
-  text("CONGRATS!", width / 2, height / 2 - 150);
+  text("CONGRATS!", width / 2, height / 2 - 400);
 
   fill(0);
   textSize(30);
-  text("Little Grogu made it home!", width / 2, height / 2 - 40);
-  text("Press R to play again", width / 2, height / 2 + 20);
-
-  fill(0, 100, 0);
-  textSize(30);
-  textAlign(LEFT, TOP);
-  text("Score: " + score, 20, 20);
+  text("Little Grogu made it home!", width / 2, height / 2 - 300);
+  text("Press R to play again", width / 2, height / 2 + 300);
 }
 
 // ========== INPUT HANDLING ==========
