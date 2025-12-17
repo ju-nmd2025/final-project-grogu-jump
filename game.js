@@ -221,16 +221,24 @@ function drawGameSuccessScreen() {
     250
   );
 
-
-  fill(0, 150, 0);
-  textSize(80);
+  noStroke();
+  fill(0, 100, 0);
+  textSize(100);
   textAlign(CENTER, TOP);
   text("CONGRATS!", width / 2, height / 2 - 400);
 
   fill(0);
   textSize(30);
-  text("Little Grogu made it home!", width / 2, height / 2 - 300);
-  text("Press R to play again", width / 2, height / 2 + 300);
+  text("little Grogu made it home!", width / 2, height / 2 - 280);
+  
+  let pulse = 1 + 0.05 * sin(frameCount * 0.05);
+  push();
+  translate(width / 2, height - 200);
+  scale(pulse);
+  textAlign(CENTER, CENTER);
+  textSize(50);
+  text("press R to play again", 0, 0);
+  pop();
 }
 
 // ========== INPUT HANDLING ==========
