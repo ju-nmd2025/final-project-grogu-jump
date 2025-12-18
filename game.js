@@ -168,7 +168,7 @@ function drawGameOverScreen() {
 
   fill(255); textAlign(CENTER, TOP);
   textSize(80); text("OH NO...", width/2, height/2 - 300);
-  textSize(30); text("You failed to get little Grogu home! :(", width/2, height/2 - 180);
+  textSize(30); text("you failed to get little Grogu home! :(", width/2, height/2 - 180);
   
   // pulsating retry text
   let pulse = 1 + 0.05 * sin(frameCount * 0.05);
